@@ -1,11 +1,5 @@
 ﻿  TextEditorDemo.cpp
-c:\users\omkar\documents\visual studio 2015\projects\texteditordemo\texteditordemo\texteditordemo.cpp(375): warning C4996: 'scanf': This function or variable may be unsafe. Consider using scanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\stdio.h(1270): note: see declaration of 'scanf'
-c:\users\omkar\documents\visual studio 2015\projects\texteditordemo\texteditordemo\texteditordemo.cpp(388): warning C4996: 'scanf': This function or variable may be unsafe. Consider using scanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\stdio.h(1270): note: see declaration of 'scanf'
-c:\users\omkar\documents\visual studio 2015\projects\texteditordemo\texteditordemo\texteditordemo.cpp(398): warning C4996: 'scanf': This function or variable may be unsafe. Consider using scanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\stdio.h(1270): note: see declaration of 'scanf'
-  stdafx.cpp
-  Generating Code...
-  TextEditorDemo.vcxproj -> c:\users\omkar\documents\visual studio 2015\Projects\TextEditorDemo\Debug\TextEditorDemo.exe
-  TextEditorDemo.vcxproj -> c:\users\omkar\documents\visual studio 2015\Projects\TextEditorDemo\Debug\TextEditorDemo.pdb (Full PDB)
+c:\users\omkar\documents\visual studio 2015\projects\texteditordemo\texteditordemo\texteditordemo.cpp(116): warning C4101: 'finished': unreferenced local variable
+c:\users\omkar\documents\visual studio 2015\projects\texteditordemo\texteditordemo\texteditordemo.cpp(395): warning C4129: ' ': unrecognized character escape sequence
+  TextEditorDemo.vcxproj -> C:\Users\Omkar\Documents\Visual Studio 2015\Projects\TextEditorDemo\Debug\TextEditorDemo.exe
+  TextEditorDemo.vcxproj -> C:\Users\Omkar\Documents\Visual Studio 2015\Projects\TextEditorDemo\Debug\TextEditorDemo.pdb (Full PDB)

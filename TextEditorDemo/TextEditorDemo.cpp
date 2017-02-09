@@ -3,24 +3,24 @@
 
 #define BLOCKSIZE 256
 
-typedef int object_t;
+typedef char* object_t;
 typedef int key_t;
-typedef struct tr_n_t {
+typedef struct t_t {
 	key_t        key;
-	struct tr_n_t  *left;
-	struct tr_n_t *right;
-	int           height;
-} tree_node_t;
+	struct t_t  *left;
+	struct t_t *right;
+	int height;
+	int number_of_leaves;
+} text_t;
 
 
-
-tree_node_t *currentblock = NULL;
+text_t *currentblock = NULL;
 int    size_left;
-tree_node_t *free_list = NULL;
+text_t *free_list = NULL;
 
-tree_node_t *get_node()
+text_t *get_node()
 {
-	tree_node_t *tmp;
+	text_t *tmp;
 	if (free_list != NULL)
 	{
 		tmp = free_list;
@@ -31,7 +31,7 @@ tree_node_t *get_node()
 		if (currentblock == NULL || size_left == 0)
 		{
 			currentblock =
-				(tree_node_t *)malloc(BLOCKSIZE * sizeof(tree_node_t));
+				(text_t *)malloc(BLOCKSIZE * sizeof(text_t));
 			size_left = BLOCKSIZE;
 		}
 		tmp = currentblock++;
@@ -41,24 +41,25 @@ tree_node_t *get_node()
 }
 
 
-void return_node(tree_node_t *node)
+void return_node(text_t *node)
 {
 	node->left = free_list;
 	free_list = node;
 }
 
 
-tree_node_t *create_tree(void)
+text_t *create_tree(void)
 {
-	tree_node_t *tmp_node;
+	text_t *tmp_node;
 	tmp_node = get_node();
 	tmp_node->left = NULL;
+	tmp_node->number_of_leaves = 0;
 	return(tmp_node);
 }
 
-void left_rotation(tree_node_t *n)
+void left_rotation(text_t *n)
 {
-	tree_node_t *tmp_node;
+	text_t *tmp_node;
 	key_t        tmp_key;
 	tmp_node = n->left;
 	tmp_key = n->key;
@@ -68,11 +69,12 @@ void left_rotation(tree_node_t *n)
 	n->left->right = n->left->left;
 	n->left->left = tmp_node;
 	n->left->key = tmp_key;
+	n->left->number_of_leaves = n->left->left->number_of_leaves + n->left->right->number_of_leaves;
 }
 
-void right_rotation(tree_node_t *n)
+void right_rotation(text_t *n)
 {
-	tree_node_t *tmp_node;
+	text_t *tmp_node;
 	key_t        tmp_key;
 	tmp_node = n->right;
 	tmp_key = n->key;
@@ -82,11 +84,12 @@ void right_rotation(tree_node_t *n)
 	n->right->left = n->right->right;
 	n->right->right = tmp_node;
 	n->right->key = tmp_key;
+	n->right->number_of_leaves = n->right->left->number_of_leaves + n->right->right->number_of_leaves;
 }
 
-object_t *find(tree_node_t *tree, key_t query_key)
+object_t *find(text_t *tree, key_t query_key)
 {
-	tree_node_t *tmp_node;
+	text_t *tmp_node;
 	if (tree->left == NULL)
 		return(NULL);
 	else
@@ -107,20 +110,21 @@ object_t *find(tree_node_t *tree, key_t query_key)
 }
 
 
-int insert(tree_node_t *tree, key_t new_key, object_t *new_object)
+int insert(text_t *tree, key_t new_key, object_t *new_object)
 {
-	tree_node_t *tmp_node;
+	text_t *tmp_node;
 	int finished;
 	if (tree->left == NULL)
 	{
-		tree->left = (tree_node_t *)new_object;
+		tree->left = (text_t *)new_object;
 		tree->key = new_key;
 		tree->height = 0;
+		tree->number_of_leaves = 1;
 		tree->right = NULL;
 	}
 	else
 	{
-		tree_node_t * path_stack[100]; int  path_st_p = 0;
+		text_t * path_stack[100]; int  path_st_p = 0;
 		tmp_node = tree;
 		while (tmp_node->right != NULL)
 		{
@@ -134,17 +138,19 @@ int insert(tree_node_t *tree, key_t new_key, object_t *new_object)
 		if (tmp_node->key == new_key)
 			return(-1);
 		/* key is distinct, now perform the insert */
-		{  tree_node_t *old_leaf, *new_leaf;
+		{  text_t *old_leaf, *new_leaf;
 		old_leaf = get_node();
 		old_leaf->left = tmp_node->left;
 		old_leaf->key = tmp_node->key;
 		old_leaf->right = NULL;
 		old_leaf->height = 0;
+		old_leaf->number_of_leaves = 1;
 		new_leaf = get_node();
-		new_leaf->left = (tree_node_t *)new_object;
+		new_leaf->left = (text_t *)new_object;
 		new_leaf->key = new_key;
 		new_leaf->right = NULL;
 		new_leaf->height = 0;
+		new_leaf->number_of_leaves = 1;
 		if (tmp_node->key < new_key)
 		{
 			tmp_node->left = old_leaf;
@@ -157,13 +163,14 @@ int insert(tree_node_t *tree, key_t new_key, object_t *new_object)
 			tmp_node->right = old_leaf;
 		}
 		tmp_node->height = 1;
+		tmp_node->number_of_leaves = tmp_node->left->number_of_leaves + tmp_node->right->number_of_leaves;
 		}
 		/* rebalance */
-		finished = 0;
-		while (path_st_p > 0 && !finished)
+		while (path_st_p > 0)
 		{
 			int tmp_height, old_height;
 			tmp_node = path_stack[--path_st_p];
+			tmp_node->number_of_leaves = tmp_node->left->number_of_leaves + tmp_node->right->number_of_leaves;
 			old_height = tmp_node->height;
 			if (tmp_node->left->height -
 				tmp_node->right->height == 2)
@@ -214,8 +221,6 @@ int insert(tree_node_t *tree, key_t new_key, object_t *new_object)
 				else
 					tmp_node->height = tmp_node->right->height + 1;
 			}
-			if (tmp_node->height == old_height)
-				finished = 1;
 		}
 
 	}
@@ -224,9 +229,9 @@ int insert(tree_node_t *tree, key_t new_key, object_t *new_object)
 
 
 
-object_t *delete_node(tree_node_t *tree, key_t delete_key)
+object_t *delete_node(text_t *tree, key_t delete_key)
 {
-	tree_node_t *tmp_node, *upper_node, *other_node;
+	text_t *tmp_node, *upper_node, *other_node;
 	object_t *deleted_object; int finished;
 	if (tree->left == NULL)
 		return(NULL);
@@ -243,7 +248,7 @@ object_t *delete_node(tree_node_t *tree, key_t delete_key)
 	}
 	else
 	{
-		tree_node_t * path_stack[100]; int path_st_p = 0;
+		text_t * path_stack[100]; int path_st_p = 0;
 		tmp_node = tree;
 		while (tmp_node->right != NULL)
 		{
@@ -338,7 +343,7 @@ object_t *delete_node(tree_node_t *tree, key_t delete_key)
 }
 
 
-void check_tree(tree_node_t *tr, int depth, int lower, int upper)
+void check_tree(text_t *tr, int depth, int lower, int upper)
 {
 	if (tr->left == NULL)
 	{
@@ -360,59 +365,107 @@ void check_tree(tree_node_t *tr, int depth, int lower, int upper)
 	}
 }
 
+text_t * create_text() {
+	text_t* tree = create_tree();
+	return tree;
+}
+int length_text(text_t *txt) {
+	if (txt != NULL)
+		return txt->number_of_leaves;
+	else
+		return (-1);
+}
+char * get_line(text_t *txt, int index) {
+	object_t* findobj = find(txt, index);
+	if (findobj == NULL)
+		return NULL;
+	else
+		return *findobj;
+}
+void append_line(text_t *txt, char * new_line) {
+	int key_to_insert, success;
+	int number_of_leaves = length_text(txt);
+	key_to_insert = number_of_leaves + 1;
+	object_t* insobj;
+	insobj = (object_t *)malloc(sizeof(int));
+	*insobj = new_line;
+	success = insert(txt, key_to_insert, insobj);
+	if (success == 0)
+		printf("  insert successful, key = %d, \
+	            height is %d,\  number_of_leaves is %d\n",
+			key_to_insert, txt->height, txt->number_of_leaves);
+	else
+		printf("  insert failed, success = %d\n", success);
+}
+char * set_line(text_t *txt, int index, char * new_line) {
+	return nullptr;
+}
+void insert_line(text_t *txt, int index, char * new_line) {
+
+}
+char * delete_line(text_t *txt, int index) {
+	return nullptr;
+}
+
 int main()
 {
-	tree_node_t *searchtree;
+	text_t* text = create_text();
 	char nextop;
-	searchtree = create_tree();
-	printf("Made Tree: Height-Balanced Tree\n");
-	while ((nextop = getchar()) != 'q')
-	{
-		if (nextop == 'i')
-		{
-			int inskey, *insobj, success;
-			insobj = (int *)malloc(sizeof(int));
-			scanf(" %d", &inskey);
-			*insobj = 10 * inskey + 2;
-			success = insert(searchtree, inskey, insobj);
-			if (success == 0)
-				printf("  insert successful, key = %d, object value = %d, \
-                  height is %d\n",
-					inskey, *insobj, searchtree->height);
-			else
-				printf("  insert failed, success = %d\n", success);
-		}
-		if (nextop == 'f')
-		{
-			int findkey, *findobj;
-			scanf(" %d", &findkey);
-			findobj = find(searchtree, findkey);
-			if (findobj == NULL)
-				printf("  find failed, for key %d\n", findkey);
-			else
-				printf("  find successful, found object %d\n", *findobj);
-		}
-		if (nextop == 'd')
-		{
-			int delkey, *delobj;
-			scanf(" %d", &delkey);
-			delobj = delete_node(searchtree, delkey);
-			if (delobj == NULL)
-				printf("  delete failed for key %d\n", delkey);
-			else
-				printf("  delete successful, deleted object %d, height is now %d\n",
-					*delobj, searchtree->height);
-		}
-		if (nextop == '?')
-		{
-			printf("  Checking tree\n");
-			check_tree(searchtree, 0, -1000, 1000);
-			printf("\n");
-			if (searchtree->left != NULL)
-				printf("key in root is %d, height of tree is %d\n",
-					searchtree->key, searchtree->height);
-			printf("  Finished Checking tree\n");
-		}
+	while ((nextop = getchar()) != 'q') {
+		append_line(text, "foobar");
+		printf("Length After Insert = %d \n",length_text(text));
 	}
+	//text_t *searchtree;
+	//char nextop;
+	//searchtree = create_tree();
+	//printf("Made Tree: Height-Balanced Tree\n");
+	//while ((nextop = getchar()) != 'q')
+	//{
+	//	if (nextop == 'i')
+	//	{
+	//		int inskey, *insobj, success;
+	//		insobj = (int *)malloc(sizeof(int));
+	//		scanf(" %d", &inskey);
+	//		*insobj = 10 * inskey + 2;
+	//		success = insert(searchtree, inskey, insobj);
+	//		if (success == 0)
+	//			printf("  insert successful, key = %d, object value = %d, \
+ //                 height is %d\n",
+	//				inskey, *insobj, searchtree->height);
+	//		else
+	//			printf("  insert failed, success = %d\n", success);
+	//	}
+	//	if (nextop == 'f')
+	//	{
+	//		int findkey, *findobj;
+	//		scanf(" %d", &findkey);
+	//		findobj = find(searchtree, findkey);
+	//		if (findobj == NULL)
+	//			printf("  find failed, for key %d\n", findkey);
+	//		else
+	//			printf("  find successful, found object %d\n", *findobj);
+	//	}
+	//	if (nextop == 'd')
+	//	{
+	//		int delkey, *delobj;
+	//		scanf(" %d", &delkey);
+	//		delobj = delete_node(searchtree, delkey);
+	//		if (delobj == NULL)
+	//			printf("  delete failed for key %d\n", delkey);
+	//		else
+	//			printf("  delete successful, deleted object %d, height is now %d\n",
+	//				*delobj, searchtree->height);
+	//	}
+	//	if (nextop == '?')
+	//	{
+	//		printf("  Checking tree\n");
+	//		check_tree(searchtree, 0, -1000, 1000);
+	//		printf("\n");
+	//		if (searchtree->left != NULL)
+	//			printf("key in root is %d, height of tree is %d\n",
+	//				searchtree->key, searchtree->height);
+	//		printf("  Finished Checking tree\n");
+	//	}
+	//}
 	return(0);
 }
