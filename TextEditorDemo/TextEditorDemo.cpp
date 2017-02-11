@@ -409,14 +409,15 @@ char * delete_line(text_t *txt, int index) {
 	if (old_line == NULL)
 		return(NULL);
 	else {
+		object_t* insobj;
+		insobj = (object_t *)malloc(sizeof(int));
+		*insobj = *old_line;
 		int i = index;
 		for (i = index;  i < length_text(txt); i++) {
-			if (i == 99)
-				printf("Hello");
 			set_line(txt, i, *find(txt, i+1));
 		}
 		delete_node(txt, i);
-		return *old_line;
+		return *insobj;
 	}
 	/*object_t* deletedObj = delete_node(txt, index);
 	if (deletedObj == NULL)
@@ -443,23 +444,29 @@ void traverse_tree(text_t *txt) {
 
 int main()
 {
-	int i;
-	text_t* text1 = create_text();
-	append_line(text1, "line one");
-	append_line(text1, "line hundred");
-	insert_line(text1, 2, "line ninetynine");
-	insert_line(text1, 2, "line ninetyeight");
-	insert_line(text1, 2, "line ninetyseven");
-	insert_line(text1, 2, "line ninetysix");
-	insert_line(text1, 2, "line ninetyfive");
-	for (i = 2; i <95; i++)
-		insert_line(text1, 2, "some filler line between 1 and 95");
+	int i, tmp;
+	text_t *txt2;
+	char *c;
 
-	set_line(text1, 100, "the last line");
-	for (i = 99; i >= 1; i--)
-		delete_line(text1, i);
 
-	printf(get_line(text1, 1));
+	txt2 = create_text();
+	for (i = 1; i <= 10000; i++) {
+		if (i % 2 == 1)
+			append_line(txt2, "A");
+		else
+			append_line(txt2, "B");
+	}
+
+	for (i = 10000; i > 1; i -= 2) {
+		c = delete_line(txt2, i);
+		printf("%c",*c);
+		append_line(txt2, c);
+		printf(get_line(txt2, 9998));
+	}
+	/*for (i = 1; i <= 5000; i++) {
+		c = get_line(txt2, i);
+		EXPECT_EQ(*c, 'A') << ("line %d of txt2 should be A, found %s\n", i, c);
+	}*/
 	getchar();
 	//text_t* text = create_text();
 	//char nextop;
