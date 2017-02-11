@@ -1,6 +1,5 @@
 ﻿  TextEditorDemo.cpp
-c:\users\prana\google drive\graduation\ads\advanceddatastructures\texteditordemo\texteditordemo.cpp(115): warning C4101: 'finished': unreferenced local variable
-c:\users\prana\google drive\graduation\ads\advanceddatastructures\texteditordemo\texteditordemo.cpp(405): warning C4129: ' ': unrecognized character escape sequence
-c:\users\prana\google drive\graduation\ads\advanceddatastructures\texteditordemo\texteditordemo.cpp(472): warning C4101: 'nextop': unreferenced local variable
-  TextEditorDemo.vcxproj -> C:\Users\prana\Google Drive\Graduation\ADS\AdvancedDataStructures\Debug\TextEditorDemo.exe
-  TextEditorDemo.vcxproj -> C:\Users\prana\Google Drive\Graduation\ADS\AdvancedDataStructures\Debug\TextEditorDemo.pdb (Full PDB)
+c:\users\omkar\documents\visual studio 2015\projects\texteditordemo\texteditordemo\texteditordemo.cpp(115): warning C4101: 'finished': unreferenced local variable
+c:\users\omkar\documents\visual studio 2015\projects\texteditordemo\texteditordemo\texteditordemo.cpp(240): warning C4101: 'finished': unreferenced local variable
+  TextEditorDemo.vcxproj -> C:\Users\Omkar\Documents\Visual Studio 2015\Projects\TextEditorDemo\Debug\TextEditorDemo.exe
+  TextEditorDemo.vcxproj -> C:\Users\Omkar\Documents\Visual Studio 2015\Projects\TextEditorDemo\Debug\TextEditorDemo.pdb (Full PDB)

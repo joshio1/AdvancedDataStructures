@@ -285,8 +285,8 @@ object_t *delete_node(text_t *tree, int index)
 		}
 
 		/*start rebalance*/
-		finished = 0; path_st_p -= 1;
-		while (path_st_p > 0 && !finished)
+		path_st_p -= 1;
+		while (path_st_p > 0)
 		{
 			int tmp_height, old_height;
 			tmp_node = path_stack[--path_st_p];
@@ -342,12 +342,8 @@ object_t *delete_node(text_t *tree, int index)
 				else
 					tmp_node->height = tmp_node->right->height + 1;
 			}
-			if (tmp_node->height == old_height)
-				finished = 1;
 		}
 		/*end rebalance*/
-		/*Update root's no_of_leaves*/
-		tree->number_of_leaves = tree->left->number_of_leaves + tree->right->number_of_leaves;
 		return(deleted_object);
 	}
 }
@@ -377,12 +373,12 @@ void append_line(text_t *txt, char * new_line) {
 	insobj = (object_t *)malloc(sizeof(int));
 	*insobj = new_line;
 	success = insert(txt, key_to_insert, insobj);
-	if (success == 0)
-		printf("  insert successful, key = %d, \
-	            height is %d,\  number_of_leaves is %d\n",
-			key_to_insert, txt->height, txt->number_of_leaves);
-	else
-		printf("  insert failed, success = %d\n", success);
+	//if (success == 0)
+		//printf("  insert successful, key = %d, \
+	 //           height is %d,\  number_of_leaves is %d\n",
+		//	key_to_insert, txt->height, txt->number_of_leaves);
+	//else
+	//	printf("  insert failed, success = %d\n", success);
 }
 char * set_line(text_t *txt, int index, char * new_line) {
 
@@ -398,7 +394,7 @@ char * set_line(text_t *txt, int index, char * new_line) {
 void insert_line(text_t *txt, int index, char * new_line) {
 	char* old_line = set_line(txt, index, new_line);
 	if (old_line != NULL) {
-		for (int i = index + 1; i < length_text(txt); i++) {
+		for (int i = index + 1; i <= length_text(txt); i++) {
 			old_line = set_line(txt, i, old_line);
 		}
 		append_line(txt, old_line);
@@ -415,6 +411,8 @@ char * delete_line(text_t *txt, int index) {
 	else {
 		int i = index;
 		for (i = index;  i < length_text(txt); i++) {
+			if (i == 99)
+				printf("Hello");
 			set_line(txt, i, *find(txt, i+1));
 		}
 		delete_node(txt, i);
@@ -445,29 +443,47 @@ void traverse_tree(text_t *txt) {
 
 int main()
 {
-	text_t* text = create_text();
-	char nextop;
-	//while ((nextop = getchar()) != 'q') {
-	//append_line(text, "foobar");
-	//printf("Length After Insert = %d \n",length_text(text));
-	//}
-	append_line(text, "hello");
-	append_line(text, "how");
-	append_line(text, "are");
-	append_line(text, "you");
-	append_line(text, "?");
-	append_line(text, "Fine");
-	traverse_tree(text);
-	printf("-------------------------------------");
-	char *insobj = "pranav";
-	char *old_line = set_line(text, 2, insobj);
-	traverse_tree(text);
-	printf("-------------------------------------");
-	insert_line(text, 2, "omkar");
-	traverse_tree(text);
-	delete_line(text, 2);
-	printf("-------------------------------------");
-	traverse_tree(text);
+	int i;
+	text_t* text1 = create_text();
+	append_line(text1, "line one");
+	append_line(text1, "line hundred");
+	insert_line(text1, 2, "line ninetynine");
+	insert_line(text1, 2, "line ninetyeight");
+	insert_line(text1, 2, "line ninetyseven");
+	insert_line(text1, 2, "line ninetysix");
+	insert_line(text1, 2, "line ninetyfive");
+	for (i = 2; i <95; i++)
+		insert_line(text1, 2, "some filler line between 1 and 95");
+
+	set_line(text1, 100, "the last line");
+	for (i = 99; i >= 1; i--)
+		delete_line(text1, i);
+
+	printf(get_line(text1, 1));
+	getchar();
+	//text_t* text = create_text();
+	//char nextop;
+	////while ((nextop = getchar()) != 'q') {
+	////append_line(text, "foobar");
+	////printf("Length After Insert = %d \n",length_text(text));
+	////}
+	//append_line(text, "hello");
+	//append_line(text, "how");
+	//append_line(text, "are");
+	//append_line(text, "you");
+	//append_line(text, "?");
+	//append_line(text, "Fine");
+	//traverse_tree(text);
+	//printf("-------------------------------------");
+	//char *insobj = "pranav";
+	//char *old_line = set_line(text, 2, insobj);
+	//traverse_tree(text);
+	//printf("-------------------------------------");
+	//insert_line(text, 2, "omkar");
+	//traverse_tree(text);
+	//delete_line(text, 2);
+	//printf("-------------------------------------");
+	//traverse_tree(text);
 	//text_t *searchtree;
 	//char nextop;
 	//searchtree = create_tree();
