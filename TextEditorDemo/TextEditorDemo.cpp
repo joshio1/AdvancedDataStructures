@@ -463,6 +463,11 @@ int main()
 		append_line(txt2, c);
 		printf(get_line(txt2, 9998));
 	}
+
+	for (i = 1; i <= 5000; i++) {
+		c = get_line(txt2, i);
+		printf("%c", *c);
+	}
 	/*for (i = 1; i <= 5000; i++) {
 		c = get_line(txt2, i);
 		EXPECT_EQ(*c, 'A') << ("line %d of txt2 should be A, found %s\n", i, c);
