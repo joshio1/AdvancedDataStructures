@@ -5,10 +5,10 @@
 
 typedef char* object_t;
 typedef int key_t;
-typedef struct t_t {
+typedef struct text_t {
 	key_t        key;
-	struct t_t  *left;
-	struct t_t *right;
+	struct text_t  *left;
+	struct text_t *right;
 	int height;
 	int number_of_leaves;
 } text_t;
