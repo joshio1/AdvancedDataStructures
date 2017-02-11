@@ -109,7 +109,6 @@ object_t *find(text_t *tree, key_t query_key)
 	}
 }
 
-
 int insert(text_t *tree, key_t new_key, object_t *new_object)
 {
 	text_t *tmp_node;
@@ -129,22 +128,28 @@ int insert(text_t *tree, key_t new_key, object_t *new_object)
 		while (tmp_node->right != NULL)
 		{
 			path_stack[path_st_p++] = tmp_node;
-			if (new_key < tmp_node->key)
+			// add an element onto the key_increment_stack only when it is not the same.      
+			if (new_key < tmp_node->key) {
 				tmp_node = tmp_node->left;
-			else
+			}
+			else {
 				tmp_node = tmp_node->right;
+			}
 		}
 		/* found the candidate leaf. Test whether key distinct */
-		if (tmp_node->key == new_key)
-			return(-1);
+		if (tmp_node->key == new_key) {
+			return NULL;
+		}
 		/* key is distinct, now perform the insert */
 		{  text_t *old_leaf, *new_leaf;
 		old_leaf = get_node();
+		// old_leaf->left is the object held by tmp_node
 		old_leaf->left = tmp_node->left;
 		old_leaf->key = tmp_node->key;
 		old_leaf->right = NULL;
 		old_leaf->height = 0;
 		old_leaf->number_of_leaves = 1;
+
 		new_leaf = get_node();
 		new_leaf->left = (text_t *)new_object;
 		new_leaf->key = new_key;
@@ -229,7 +234,7 @@ int insert(text_t *tree, key_t new_key, object_t *new_object)
 
 
 
-object_t *delete_node(text_t *tree, key_t delete_key)
+object_t *delete_node(text_t *tree, int index)
 {
 	text_t *tmp_node, *upper_node, *other_node;
 	object_t *deleted_object; int finished;
@@ -237,7 +242,7 @@ object_t *delete_node(text_t *tree, key_t delete_key)
 		return(NULL);
 	else if (tree->right == NULL)
 	{
-		if (tree->key == delete_key)
+		if (tree->key == index)
 		{
 			deleted_object = (object_t *)tree->left;
 			tree->left = NULL;
@@ -254,7 +259,7 @@ object_t *delete_node(text_t *tree, key_t delete_key)
 		{
 			path_stack[path_st_p++] = tmp_node;
 			upper_node = tmp_node;
-			if (delete_key < tmp_node->key)
+			if (index < tmp_node->key)
 			{
 				tmp_node = upper_node->left;
 				other_node = upper_node->right;
@@ -265,7 +270,7 @@ object_t *delete_node(text_t *tree, key_t delete_key)
 				other_node = upper_node->left;
 			}
 		}
-		if (tmp_node->key != delete_key)
+		if (tmp_node->key != index)
 			deleted_object = NULL;
 		else
 		{
@@ -273,17 +278,20 @@ object_t *delete_node(text_t *tree, key_t delete_key)
 			upper_node->left = other_node->left;
 			upper_node->right = other_node->right;
 			upper_node->height = other_node->height;
+			upper_node->number_of_leaves = other_node->number_of_leaves;
 			deleted_object = (object_t *)tmp_node->left;
 			return_node(tmp_node);
 			return_node(other_node);
-
 		}
+
 		/*start rebalance*/
 		finished = 0; path_st_p -= 1;
 		while (path_st_p > 0 && !finished)
 		{
 			int tmp_height, old_height;
 			tmp_node = path_stack[--path_st_p];
+			if (tmp_node->right != NULL)
+				tmp_node->number_of_leaves = tmp_node->left->number_of_leaves + tmp_node->right->number_of_leaves;
 			old_height = tmp_node->height;
 			if (tmp_node->left->height -
 				tmp_node->right->height == 2)
@@ -338,30 +346,9 @@ object_t *delete_node(text_t *tree, key_t delete_key)
 				finished = 1;
 		}
 		/*end rebalance*/
+		/*Update root's no_of_leaves*/
+		tree->number_of_leaves = tree->left->number_of_leaves + tree->right->number_of_leaves;
 		return(deleted_object);
-	}
-}
-
-
-void check_tree(text_t *tr, int depth, int lower, int upper)
-{
-	if (tr->left == NULL)
-	{
-		printf("Tree Empty\n"); return;
-	}
-	if (tr->key < lower || tr->key >= upper)
-		printf("Wrong Key Order \n");
-	if (tr->right == NULL)
-	{
-		if (*((int *)tr->left) == 10 * tr->key + 2)
-			printf("%d(%d)  ", tr->key, depth);
-		else
-			printf("Wrong Object \n");
-	}
-	else
-	{
-		check_tree(tr->left, depth + 1, lower, tr->key);
-		check_tree(tr->right, depth + 1, tr->key, upper);
 	}
 }
 
@@ -398,23 +385,89 @@ void append_line(text_t *txt, char * new_line) {
 		printf("  insert failed, success = %d\n", success);
 }
 char * set_line(text_t *txt, int index, char * new_line) {
-	return nullptr;
+
+	object_t* insobj;
+	object_t *found_line = find(txt, index);
+	if (found_line == NULL)
+		return(NULL);
+	insobj = (object_t *)malloc(sizeof(int));
+	*insobj = *found_line;
+	*found_line = new_line;
+	return *insobj;
 }
 void insert_line(text_t *txt, int index, char * new_line) {
+	char* old_line = set_line(txt, index, new_line);
+	if (old_line != NULL) {
+		for (int i = index + 1; i < length_text(txt); i++) {
+			old_line = set_line(txt, i, old_line);
+		}
+		append_line(txt, old_line);
+	}
+	else {
+		append_line(txt, new_line);
+	}
 
 }
 char * delete_line(text_t *txt, int index) {
-	return nullptr;
+	object_t *old_line = find(txt, index);
+	if (old_line == NULL)
+		return(NULL);
+	else {
+		int i = index;
+		for (i = index;  i < length_text(txt); i++) {
+			set_line(txt, i, *find(txt, i+1));
+		}
+		delete_node(txt, i);
+		return *old_line;
+	}
+	/*object_t* deletedObj = delete_node(txt, index);
+	if (deletedObj == NULL)
+		return NULL;
+	else
+		return *deletedObj;*/
+}
+
+void traverse_tree(text_t *txt) {
+	text_t *tmp = txt;
+	if (tmp->right == NULL) {
+		printf("--------\n");
+		printf("|Leaf key: %d |\n", tmp->key);
+		printf("|Leaf text: %s |\n", *(object_t*)tmp->left);
+		printf("--------\n");
+	}
+	else {
+		traverse_tree(tmp->left);
+		printf("Node Key: %d\n", tmp->key);
+		printf("Number of leaves: %d\n", tmp->number_of_leaves);
+		traverse_tree(tmp->right);
+	}
 }
 
 int main()
 {
 	text_t* text = create_text();
 	char nextop;
-	while ((nextop = getchar()) != 'q') {
-		append_line(text, "foobar");
-		printf("Length After Insert = %d \n",length_text(text));
-	}
+	//while ((nextop = getchar()) != 'q') {
+	//append_line(text, "foobar");
+	//printf("Length After Insert = %d \n",length_text(text));
+	//}
+	append_line(text, "hello");
+	append_line(text, "how");
+	append_line(text, "are");
+	append_line(text, "you");
+	append_line(text, "?");
+	append_line(text, "Fine");
+	traverse_tree(text);
+	printf("-------------------------------------");
+	char *insobj = "pranav";
+	char *old_line = set_line(text, 2, insobj);
+	traverse_tree(text);
+	printf("-------------------------------------");
+	insert_line(text, 2, "omkar");
+	traverse_tree(text);
+	delete_line(text, 2);
+	printf("-------------------------------------");
+	traverse_tree(text);
 	//text_t *searchtree;
 	//char nextop;
 	//searchtree = create_tree();
@@ -430,42 +483,42 @@ int main()
 	//		success = insert(searchtree, inskey, insobj);
 	//		if (success == 0)
 	//			printf("  insert successful, key = %d, object value = %d, \
- //                 height is %d\n",
-	//				inskey, *insobj, searchtree->height);
-	//		else
-	//			printf("  insert failed, success = %d\n", success);
-	//	}
-	//	if (nextop == 'f')
-	//	{
-	//		int findkey, *findobj;
-	//		scanf(" %d", &findkey);
-	//		findobj = find(searchtree, findkey);
-	//		if (findobj == NULL)
-	//			printf("  find failed, for key %d\n", findkey);
-	//		else
-	//			printf("  find successful, found object %d\n", *findobj);
-	//	}
-	//	if (nextop == 'd')
-	//	{
-	//		int delkey, *delobj;
-	//		scanf(" %d", &delkey);
-	//		delobj = delete_node(searchtree, delkey);
-	//		if (delobj == NULL)
-	//			printf("  delete failed for key %d\n", delkey);
-	//		else
-	//			printf("  delete successful, deleted object %d, height is now %d\n",
-	//				*delobj, searchtree->height);
-	//	}
-	//	if (nextop == '?')
-	//	{
-	//		printf("  Checking tree\n");
-	//		check_tree(searchtree, 0, -1000, 1000);
-	//		printf("\n");
-	//		if (searchtree->left != NULL)
-	//			printf("key in root is %d, height of tree is %d\n",
-	//				searchtree->key, searchtree->height);
-	//		printf("  Finished Checking tree\n");
-	//	}
-	//}
+	 //                 height is %d\n",
+//				inskey, *insobj, searchtree->height);
+//		else
+//			printf("  insert failed, success = %d\n", success);
+//	}
+//	if (nextop == 'f')
+//	{
+//		int findkey, *findobj;
+//		scanf(" %d", &findkey);
+//		findobj = find(searchtree, findkey);
+//		if (findobj == NULL)
+//			printf("  find failed, for key %d\n", findkey);
+//		else
+//			printf("  find successful, found object %d\n", *findobj);
+//	}
+//	if (nextop == 'd')
+//	{
+//		int delkey, *delobj;
+//		scanf(" %d", &delkey);
+//		delobj = delete_node(searchtree, delkey);
+//		if (delobj == NULL)
+//			printf("  delete failed for key %d\n", delkey);
+//		else
+//			printf("  delete successful, deleted object %d, height is now %d\n",
+//				*delobj, searchtree->height);
+//	}
+//	if (nextop == '?')
+//	{
+//		printf("  Checking tree\n");
+//		check_tree(searchtree, 0, -1000, 1000);
+//		printf("\n");
+//		if (searchtree->left != NULL)
+//			printf("key in root is %d, height of tree is %d\n",
+//				searchtree->key, searchtree->height);
+//		printf("  Finished Checking tree\n");
+//	}
+//}
 	return(0);
 }
