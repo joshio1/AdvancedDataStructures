@@ -20,6 +20,7 @@ This tree structure supports the following operations -
 Key mechanism in this implementation is changed so that we can easily when a line is inserted, all the following lines will be renumbered without visiting more than O(log n) nodes. Same goes for delete opeartion.
 
 Contribution from each of us -
+
 1) Pranav Nawathe - insert_line, set_line, get_line almost half of the implementation of standard tree such as left_rotation, right_rotation, etc
 
 2) Omkar Joshi - delete_line, append_line, length_text along with remaining implementation of tree
